@@ -165,7 +165,7 @@
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
@@ -203,13 +203,13 @@
       font-size: 12px;
       font-weight: 600;
       letter-spacing: 1.5px;
-      padding: 8px 18px;
+      padding: 8px 16px;
       color: var(--poe-gold-light);
       cursor: pointer;
       border-radius: 2px;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       user-select: none;
       text-shadow: 0 1px 2px #000;
@@ -664,6 +664,7 @@
       text-shadow: 0 2px 4px #000;
     }
 
+    /* Modal dialog */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -689,10 +690,74 @@
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
       position: relative;
     }
-    .modal-header { padding: 16px 22px; border-bottom: 1px solid var(--poe-border-iron); }
+    .history-modal-box {
+      max-width: 940px !important;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .history-modal-body {
+      padding: 16px 24px 24px;
+      overflow-y: auto;
+      max-height: calc(90vh - 130px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .modal-header { padding: 16px 22px; border-bottom: 1px solid var(--poe-border-iron); display: flex; justify-content: space-between; align-items: center; }
     .modal-title { font-family: var(--font-poe); font-size: 15px; font-variant: small-caps; color: var(--poe-gold-light); }
     .modal-body { padding: 22px; color: var(--poe-text-normal); font-size: 13.5px; line-height: 1.6; }
     .modal-footer { padding: 14px 22px; background: #080709; border-top: 1px solid var(--poe-border-iron); display: flex; justify-content: flex-end; gap: 12px; }
+
+    /* Lifetime Summary in History */
+    .lifetime-summary-panel {
+      background: linear-gradient(180deg, rgba(28, 22, 17, 0.95) 0%, rgba(13, 11, 14, 0.98) 100%);
+      border: 1px solid var(--poe-border-bronze);
+      border-top: 2px solid var(--poe-border-gold);
+      border-radius: 2px;
+      padding: 14px 18px;
+    }
+    .lifetime-header { font-family: var(--font-poe); font-size: 12.5px; font-variant: small-caps; color: var(--poe-gold-light); margin-bottom: 10px; }
+    .lifetime-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .lifetime-box { background: var(--poe-bg-sunken); border: 1px solid #292118; border-radius: 2px; padding: 10px 14px; }
+    .lifetime-label { font-family: var(--font-poe); font-size: 10.5px; font-variant: small-caps; color: var(--poe-text-currency); margin-bottom: 4px; }
+    .lifetime-value { font-family: var(--font-poe); font-size: 20px; font-weight: 700; color: #fff; }
+    .lifetime-sub { font-size: 10.5px; color: var(--poe-text-dim); font-family: var(--font-poe); margin-top: 3px; }
+
+    .history-search-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .history-search-input { flex: 1; min-width: 220px; }
+
+    .sessions-list { display: flex; flex-direction: column; gap: 12px; }
+    .session-card {
+      background: linear-gradient(180deg, #131117 0%, #0a090c 100%);
+      border: 1px solid var(--poe-border-iron);
+      border-top: 1px solid #3d3122;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .session-card.expanded { border-color: var(--poe-border-gold); }
+    .session-card-header { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; cursor: pointer; flex-wrap: wrap; }
+    .session-card-main { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 240px; }
+    .session-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .session-card-title { font-family: var(--font-poe); font-size: 15px; font-weight: 700; color: var(--poe-gold-light); }
+    .session-date-badge { font-family: var(--font-poe); font-size: 10.5px; color: var(--poe-text-dim); font-variant: small-caps; }
+    .session-meta-row { display: flex; align-items: center; gap: 8px; font-family: var(--font-poe); font-size: 11.5px; font-variant: small-caps; color: var(--poe-text-muted); }
+    .session-card-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .session-net-badge { display: flex; flex-direction: column; align-items: flex-end; padding: 6px 14px; border-radius: 2px; min-width: 115px; }
+    .session-net-badge.profit { background: rgba(56, 224, 122, 0.1); border: 1px solid var(--poe-profit-green); color: #5aff9f; }
+    .session-net-badge.loss { background: rgba(240, 68, 56, 0.1); border: 1px solid var(--poe-loss-red); color: #ff756b; }
+    .session-net-badge.neutral { background: rgba(212, 167, 94, 0.1); border: 1px solid var(--poe-border-gold); color: var(--poe-gold-light); }
+    .net-main-val { font-family: var(--font-poe); font-size: 14.5px; font-weight: 700; }
+    .net-alt-val { font-size: 10.5px; opacity: 0.75; font-family: var(--font-poe); font-variant: small-caps; }
+    .session-actions-group { display: flex; align-items: center; gap: 6px; }
+
+    .session-detail-view { border-top: 1px solid #231b14; padding: 16px 18px; background: rgba(7, 6, 9, 0.9); display: flex; flex-direction: column; gap: 14px; }
+    .session-detail-rate-bar { display: flex; justify-content: space-between; font-family: var(--font-poe); font-size: 11px; font-variant: small-caps; color: var(--poe-text-currency); padding-bottom: 8px; border-bottom: 1px solid #1a161b; }
+    .session-detail-tables { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 768px) { .session-detail-tables { grid-template-columns: 1fr; } }
+    .detail-sub-table { background: #0d0c10; border: 1px solid #211c15; border-radius: 2px; overflow: hidden; }
+    .detail-table-title { padding: 8px 12px; background: #131117; border-bottom: 1px solid #211c15; font-family: var(--font-poe); font-size: 12px; font-variant: small-caps; }
+    .detail-poe-table th, .detail-poe-table td { padding: 6px 10px; font-size: 12px; }
 
     #importFileInput { display: none; }
     footer {
@@ -763,16 +828,26 @@
             <span>Saved</span>
           </div>
 
+          <!-- Save Session -->
+          <button class="btn btn-gold" id="btnOpenSaveSessionModal" title="Зберегти поточну сесію в історію">
+            Зберегти сесію
+          </button>
+
+          <!-- History -->
+          <button class="btn" id="btnOpenHistoryModal" title="Переглянути історію сесій">
+            Історія (<span id="historyCountBadge">0</span>)
+          </button>
+
           <button class="btn" id="btnExport" title="Експортувати дані у файл JSON">
-            Export JSON
+            Export
           </button>
 
           <button class="btn" id="btnImport" title="Імпортувати дані з файлу JSON">
-            Import JSON
+            Import
           </button>
 
-          <button class="btn btn-danger" id="btnClearAll" title="Очистити всі таблиці">
-            Clear All
+          <button class="btn btn-danger" id="btnClearAll" title="Очистити поточні таблиці">
+            Clear
           </button>
         </div>
       </div>
@@ -948,6 +1023,70 @@
     </footer>
   </div>
 
+  <!-- Save Session Modal -->
+  <div class="modal-overlay" id="saveSessionModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">Зберегти сесію в історію</div>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 12px; font-size: 13px;">Вкажіть назву або опис фарм-стратегії:</p>
+        <input type="text" class="input-field" id="sessionTitleInput" placeholder="e.g. T17 Fortress, 10x Sanctum...">
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="btnCancelSaveSession">Скасувати</button>
+        <button class="btn btn-gold" id="btnConfirmSaveSession">Зберегти</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History & Statistics Modal -->
+  <div class="modal-overlay" id="historyModal">
+    <div class="modal-box history-modal-box">
+      <div class="modal-header">
+        <div class="modal-title">Історія сесій та Загальна статистика</div>
+        <button type="button" class="btn-delete" id="btnCloseHistory">&times;</button>
+      </div>
+      <div class="history-modal-body">
+        <!-- Lifetime Stats -->
+        <div class="lifetime-summary-panel" id="lifetimePanel">
+          <div class="lifetime-header">Загальна статистика за весь час (Lifetime Wealth):</div>
+          <div class="lifetime-grid">
+            <div class="lifetime-box">
+              <div class="lifetime-label">Збережено сесій</div>
+              <div class="lifetime-value" id="ltTotalSessions">0</div>
+            </div>
+            <div class="lifetime-box">
+              <div class="lifetime-label">Всього витрачено</div>
+              <div class="lifetime-value" id="ltTotalExpenses">0</div>
+            </div>
+            <div class="lifetime-box">
+              <div class="lifetime-label">Всього здобуто</div>
+              <div class="lifetime-value" style="color: #5aff9f;" id="ltTotalProfit">0</div>
+            </div>
+            <div class="lifetime-box">
+              <div class="lifetime-label">Чистий прибуток</div>
+              <div class="lifetime-value" id="ltNetProfit">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search & Clear -->
+        <div class="history-search-row">
+          <input type="text" class="input-field history-search-input" id="historySearchInput" placeholder="Пошук сесії за назвою...">
+          <button type="button" class="btn btn-danger btn-sm" id="btnClearHistory">Очистити історію</button>
+        </div>
+
+        <!-- List -->
+        <div class="sessions-list" id="sessionsListContainer"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="btnBottomCloseHistory">Закрити</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
   <div class="modal-overlay" id="confirmModal">
     <div class="modal-box">
       <div class="modal-header">
@@ -978,19 +1117,24 @@
         profit: [
           { id: 'prof_1', name: 'Divine Orb', quantity: 2, price: 1, currency: 'divine' },
           { id: 'prof_2', name: 'Chaos Orb', quantity: 50, price: 1, currency: 'chaos' }
-        ]
+        ],
+        history: []
       };
 
       let appData = {
         divinePriceInChaos: 150,
         displayCurrency: 'chaos',
         expenses: [],
-        profit: []
+        profit: [],
+        history: []
       };
+
+      let expandedSessionId = null;
 
       const divineRateInput = document.getElementById('divineRateInput');
       const btnToggleChaos = document.getElementById('btnToggleChaos');
       const btnToggleDivine = document.getElementById('btnToggleDivine');
+      const historyCountBadge = document.getElementById('historyCountBadge');
 
       const summaryTitleText = document.getElementById('summaryTitleText');
       const summaryRateText = document.getElementById('summaryRateText');
@@ -1023,9 +1167,33 @@
       const btnExport = document.getElementById('btnExport');
       const btnImport = document.getElementById('btnImport');
       const importFileInput = document.getElementById('importFileInput');
+
+      // Modals
       const confirmModal = document.getElementById('confirmModal');
       const modalBtnCancel = document.getElementById('modalBtnCancel');
       const modalBtnConfirm = document.getElementById('modalBtnConfirm');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalMessage = document.getElementById('modalMessage');
+      let modalConfirmCallback = null;
+
+      const saveSessionModal = document.getElementById('saveSessionModal');
+      const sessionTitleInput = document.getElementById('sessionTitleInput');
+      const btnOpenSaveSessionModal = document.getElementById('btnOpenSaveSessionModal');
+      const btnCancelSaveSession = document.getElementById('btnCancelSaveSession');
+      const btnConfirmSaveSession = document.getElementById('btnConfirmSaveSession');
+
+      const historyModal = document.getElementById('historyModal');
+      const btnOpenHistoryModal = document.getElementById('btnOpenHistoryModal');
+      const btnCloseHistory = document.getElementById('btnCloseHistory');
+      const btnBottomCloseHistory = document.getElementById('btnBottomCloseHistory');
+      const btnClearHistory = document.getElementById('btnClearHistory');
+      const historySearchInput = document.getElementById('historySearchInput');
+      const sessionsListContainer = document.getElementById('sessionsListContainer');
+
+      const ltTotalSessions = document.getElementById('ltTotalSessions');
+      const ltTotalExpenses = document.getElementById('ltTotalExpenses');
+      const ltTotalProfit = document.getElementById('ltTotalProfit');
+      const ltNetProfit = document.getElementById('ltNetProfit');
 
       function generateId() { return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6); }
       function formatNumber(num, decimals = 2) {
@@ -1062,7 +1230,8 @@
                 divinePriceInChaos: typeof parsed.divinePriceInChaos === 'number' && parsed.divinePriceInChaos > 0 ? parsed.divinePriceInChaos : 150,
                 displayCurrency: parsed.displayCurrency === 'divine' ? 'divine' : 'chaos',
                 expenses: parsed.expenses.map(i => ({ ...i, currency: i.currency || (i.name && i.name.toLowerCase().includes('divine') ? 'divine' : 'chaos') })),
-                profit: parsed.profit.map(i => ({ ...i, currency: i.currency || (i.name && i.name.toLowerCase().includes('divine') ? 'divine' : 'chaos') }))
+                profit: parsed.profit.map(i => ({ ...i, currency: i.currency || (i.name && i.name.toLowerCase().includes('divine') ? 'divine' : 'chaos') })),
+                history: Array.isArray(parsed.history) ? parsed.history : []
               };
               return;
             }
@@ -1106,6 +1275,7 @@
           roiDisplay = '+100.00%';
         }
 
+        historyCountBadge.textContent = (appData.history || []).length;
         divineRateInput.value = rate;
         summaryRateText.textContent = `Rate: 1 div = ${rate} c`;
         summaryTitleText.textContent = `Financial Summary (${isDivine ? 'Divine Orbs' : 'Chaos Orbs'})`;
@@ -1126,14 +1296,12 @@
         const netVal = isDivine ? netDivine : netChaos;
         const netAlt = isDivine ? netChaos : netDivine;
 
-        // Update Footers
         footerExpensesTotal.innerHTML = `${formatNumber(expVal, isDivine ? 2 : 1)} <span class="${isDivine ? 'currency-div-tag' : 'currency-chaos-tag'}">${curTag}</span>`;
         footerExpensesSecondary.textContent = isDivine ? `≈ ${formatNumber(expAlt, 1)} Chaos` : `≈ ${formatNumber(expAlt, 2)} Divine`;
 
         footerProfitTotal.innerHTML = `${formatNumber(profVal, isDivine ? 2 : 1)} <span class="${isDivine ? 'currency-div-tag' : 'currency-chaos-tag'}">${curTag}</span>`;
         footerProfitSecondary.textContent = isDivine ? `≈ ${formatNumber(profAlt, 1)} Chaos` : `≈ ${formatNumber(profAlt, 2)} Divine`;
 
-        // Update Dashboard
         summaryExpenses.innerHTML = `${formatNumber(expVal, isDivine ? 2 : 1)} <span class="${isDivine ? 'currency-div-tag' : 'currency-chaos-tag'}">${curTag}</span>`;
         summaryExpensesSub.textContent = `≈ ${formatNumber(expAlt, isDivine ? 1 : 2)} ${isDivine ? 'c' : 'div'}`;
 
@@ -1268,17 +1436,217 @@
         saveData();
       }
 
-      function clearAll() {
-        confirmModal.classList.add('open');
+      // History Render & Management
+      function renderHistory() {
+        const list = appData.history || [];
+        const query = (historySearchInput.value || '').toLowerCase();
+        const filtered = list.filter(s => s.title.toLowerCase().includes(query));
+        const isDivine = appData.displayCurrency === 'divine';
+
+        // Lifetime stats
+        let totalExpChaos = 0;
+        let totalProfChaos = 0;
+        let netChaos = 0;
+        for (const s of list) {
+          totalExpChaos += (s.summary.totalExpensesChaos || 0);
+          totalProfChaos += (s.summary.totalProfitChaos || 0);
+          netChaos += (s.summary.netProfitChaos || 0);
+        }
+        const rate = getDivineRate();
+        const totalExpDivine = rate > 0 ? totalExpChaos / rate : 0;
+        const totalProfDivine = rate > 0 ? totalProfChaos / rate : 0;
+        const netDivine = rate > 0 ? netChaos / rate : 0;
+
+        ltTotalSessions.textContent = list.length;
+        ltTotalExpenses.textContent = isDivine ? `${formatNumber(totalExpDivine, 2)} div` : `${formatNumber(totalExpChaos, 0)} c`;
+        ltTotalProfit.textContent = isDivine ? `${formatNumber(totalProfDivine, 2)} div` : `${formatNumber(totalProfChaos, 0)} c`;
+        ltNetProfit.innerHTML = `<span style="color: ${netChaos >= 0 ? '#5aff9f' : '#ff756b'}">${netChaos > 0 ? '+' : ''}${isDivine ? formatNumber(netDivine, 2) + ' div' : formatNumber(netChaos, 0) + ' c'}</span>`;
+
+        if (filtered.length === 0) {
+          sessionsListContainer.innerHTML = `
+            <div class="empty-state">
+              <div>${list.length === 0 ? 'Історія сесій порожня' : 'Сесій не знайдено'}</div>
+            </div>
+          `;
+          return;
+        }
+
+        sessionsListContainer.innerHTML = '';
+        filtered.forEach(session => {
+          const isExpanded = expandedSessionId === session.id;
+          const sNet = session.summary.netProfitChaos;
+          const isProf = sNet > 0.0001;
+          const isLoss = sNet < -0.0001;
+          const primaryNet = isDivine ? session.summary.netProfitDivine : session.summary.netProfitChaos;
+          const curTag = isDivine ? 'div' : 'c';
+
+          const card = document.createElement('div');
+          card.className = `session-card ${isExpanded ? 'expanded' : ''}`;
+          card.innerHTML = `
+            <div class="session-card-header">
+              <div class="session-card-main">
+                <div class="session-title-row">
+                  <span class="session-card-title">${session.title}</span>
+                  <span class="session-date-badge">${new Date(session.createdAt).toLocaleDateString('uk-UA')} ${new Date(session.createdAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="session-meta-row">
+                  <span>Витрати: ${formatNumber(isDivine ? session.summary.totalExpensesDivine : session.summary.totalExpensesChaos, isDivine ? 2 : 0)} ${curTag}</span>
+                  <span>•</span>
+                  <span>Видобуток: ${formatNumber(isDivine ? session.summary.totalProfitDivine : session.summary.totalProfitChaos, isDivine ? 2 : 0)} ${curTag}</span>
+                  <span>•</span>
+                  <span>ROI: <strong style="color: ${isProf ? '#5aff9f' : isLoss ? '#ff756b' : '#d4a75e'}">${session.summary.roiDisplay}</strong></span>
+                </div>
+              </div>
+              <div class="session-card-right">
+                <div class="session-net-badge ${isProf ? 'profit' : isLoss ? 'loss' : 'neutral'}">
+                  <div class="net-main-val">${primaryNet > 0 ? '+' : ''}${formatNumber(primaryNet, isDivine ? 2 : 0)} ${curTag}</div>
+                </div>
+                <div class="session-actions-group">
+                  <button type="button" class="btn btn-gold btn-sm btn-restore-session">Завантажити</button>
+                  <button type="button" class="btn-delete btn-del-session">&times;</button>
+                  <button type="button" class="btn btn-sm btn-toggle-session">${isExpanded ? '▲' : '▼'}</button>
+                </div>
+              </div>
+            </div>
+            ${isExpanded ? `
+              <div class="session-detail-view">
+                <div class="session-detail-rate-bar">
+                  <span>Курс сесії: 1 div = ${session.divineRate} c</span>
+                  <span>Предметів: ${session.expenses.length} витрат, ${session.profit.length} дропу</span>
+                </div>
+                <div class="session-detail-tables">
+                  <div class="detail-sub-table">
+                    <div class="detail-table-title" style="color: #e54b4b;">Витрати (${session.expenses.length})</div>
+                    <table class="poe-table detail-poe-table">
+                      <tbody>
+                        ${session.expenses.map(i => `<tr><td>${i.name}</td><td class="col-num">${i.quantity}</td><td class="col-num">${i.price} ${i.currency === 'divine' ? 'div' : 'c'}</td></tr>`).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="detail-sub-table">
+                    <div class="detail-table-title" style="color: #38e07a;">Видобуток (${session.profit.length})</div>
+                    <table class="poe-table detail-poe-table">
+                      <tbody>
+                        ${session.profit.map(i => `<tr><td>${i.name}</td><td class="col-num">${i.quantity}</td><td class="col-num">${i.price} ${i.currency === 'divine' ? 'div' : 'c'}</td></tr>`).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+          `;
+
+          const btnRestore = card.querySelector('.btn-restore-session');
+          const btnDel = card.querySelector('.btn-del-session');
+          const btnTog = card.querySelector('.btn-toggle-session');
+          const headerArea = card.querySelector('.session-card-main');
+
+          btnRestore.addEventListener('click', (e) => {
+            e.stopPropagation();
+            appData.expenses = JSON.parse(JSON.stringify(session.expenses));
+            appData.profit = JSON.parse(JSON.stringify(session.profit));
+            appData.divinePriceInChaos = session.divineRate || appData.divinePriceInChaos;
+            historyModal.classList.remove('open');
+            renderAll();
+            saveData();
+          });
+
+          btnDel.addEventListener('click', (e) => {
+            e.stopPropagation();
+            appData.history = appData.history.filter(s => s.id !== session.id);
+            saveData();
+            renderHistory();
+            calculateTotals();
+          });
+
+          const toggle = () => {
+            expandedSessionId = expandedSessionId === session.id ? null : session.id;
+            renderHistory();
+          };
+
+          btnTog.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
+          headerArea.addEventListener('click', toggle);
+
+          sessionsListContainer.appendChild(card);
+        });
       }
 
-      modalBtnCancel.addEventListener('click', () => confirmModal.classList.remove('open'));
-      modalBtnConfirm.addEventListener('click', () => {
+      btnOpenSaveSessionModal.addEventListener('click', () => {
+        const now = new Date();
+        sessionTitleInput.value = `Фарм-сесія (${now.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' })} ${now.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })})`;
+        saveSessionModal.classList.add('open');
+        sessionTitleInput.focus();
+      });
+
+      btnCancelSaveSession.addEventListener('click', () => saveSessionModal.classList.remove('open'));
+      btnConfirmSaveSession.addEventListener('click', () => {
+        const title = (sessionTitleInput.value || '').trim() || 'Фарм-сесія';
+        const rate = getDivineRate();
+
+        let expChaos = 0;
+        for (const item of appData.expenses) {
+          const raw = parseSafeFloat(item.quantity) * parseSafeFloat(item.price);
+          expChaos += (item.currency === 'divine' ? raw * rate : raw);
+        }
+        let profChaos = 0;
+        for (const item of appData.profit) {
+          const raw = parseSafeFloat(item.quantity) * parseSafeFloat(item.price);
+          profChaos += (item.currency === 'divine' ? raw * rate : raw);
+        }
+        const expDivine = rate > 0 ? expChaos / rate : 0;
+        const profDivine = rate > 0 ? profChaos / rate : 0;
+        const netChaos = profChaos - expChaos;
+        const netDivine = profDivine - expDivine;
+        let roiDisplay = '0.00%';
+        if (expChaos > 0) roiDisplay = `${(netChaos / expChaos) * 100 >= 0 ? '+' : ''}${formatNumber((netChaos / expChaos) * 100, 2)}%`;
+
+        const newSession = {
+          id: generateId(),
+          title,
+          createdAt: new Date().toISOString(),
+          divineRate: rate,
+          displayCurrency: appData.displayCurrency,
+          expenses: JSON.parse(JSON.stringify(appData.expenses)),
+          profit: JSON.parse(JSON.stringify(appData.profit)),
+          summary: {
+            totalExpensesChaos: expChaos,
+            totalExpensesDivine: expDivine,
+            totalProfitChaos: profChaos,
+            totalProfitDivine: profDivine,
+            netProfitChaos: netChaos,
+            netProfitDivine: netDivine,
+            roiDisplay,
+            status: netChaos > 0.0001 ? 'PROFIT' : netChaos < -0.0001 ? 'LOSS' : 'BREAK EVEN'
+          }
+        };
+
+        appData.history = [newSession, ...(appData.history || [])];
+        saveSessionModal.classList.remove('open');
+        saveData();
+        calculateTotals();
+      });
+
+      btnOpenHistoryModal.addEventListener('click', () => {
+        historyModal.classList.add('open');
+        renderHistory();
+      });
+
+      btnCloseHistory.addEventListener('click', () => historyModal.classList.remove('open'));
+      btnBottomCloseHistory.addEventListener('click', () => historyModal.classList.remove('open'));
+      historySearchInput.addEventListener('input', renderHistory);
+
+      btnClearHistory.addEventListener('click', () => {
+        appData.history = [];
+        saveData();
+        renderHistory();
+        calculateTotals();
+      });
+
+      btnClearAll.addEventListener('click', () => {
         appData.expenses = [];
         appData.profit = [];
         renderAll();
         saveData();
-        confirmModal.classList.remove('open');
       });
 
       divineRateInput.addEventListener('input', (e) => {
@@ -1302,7 +1670,6 @@
 
       btnAddExpense.addEventListener('click', () => addItem('expenses'));
       btnAddProfit.addEventListener('click', () => addItem('profit'));
-      btnClearAll.addEventListener('click', clearAll);
 
       loadData();
       renderAll();

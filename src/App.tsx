@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { CalculatorState, ProfitItem, SummaryStats, CurrencyType } from './types';
+import { CalculatorState, ProfitItem, SummaryStats, CurrencyType, SavedSession } from './types';
 import { STORAGE_KEY, DEFAULT_CALCULATOR_DATA, COMMON_POE_ITEMS } from './constants/poeItems';
 import { Header } from './components/Header';
 import { CurrencyBar } from './components/CurrencyBar';
 import { SummaryDashboard } from './components/SummaryDashboard';
 import { ItemTable } from './components/ItemTable';
+import { SaveSessionModal } from './components/SaveSessionModal';
+import { HistoryModal } from './components/HistoryModal';
 import { ConfirmModal } from './components/ConfirmModal';
 import { ToastContainer, ToastMessage } from './components/Toast';
 import './styles/App.css';
@@ -17,7 +19,6 @@ export const App: React.FC = () => {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed.expenses) && Array.isArray(parsed.profit)) {
-          // Backward compatibility migration
           return {
             divinePriceInChaos: typeof parsed.divinePriceInChaos === 'number' && parsed.divinePriceInChaos > 0 
               ? parsed.divinePriceInChaos 
@@ -30,7 +31,8 @@ export const App: React.FC = () => {
             profit: parsed.profit.map((item: any) => ({
               ...item,
               currency: item.currency || (item.name && item.name.toLowerCase().includes('divine') ? 'divine' : 'chaos')
-            }))
+            })),
+            history: Array.isArray(parsed.history) ? parsed.history : []
           };
         }
       }
@@ -42,6 +44,10 @@ export const App: React.FC = () => {
 
   const [isSavedActive, setIsSavedActive] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  
+  // Modals state
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -214,25 +220,90 @@ export const App: React.FC = () => {
     setData((prev) => ({ ...prev, displayCurrency: currency }));
   };
 
-  // Actions: Clear All
-  const handleClearAll = () => {
+  // ----------------------------------------------------
+  // SESSION HISTORY ACTIONS
+  // ----------------------------------------------------
+  const handleSaveSession = (title: string) => {
+    const newSession: SavedSession = {
+      id: 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      title,
+      createdAt: new Date().toISOString(),
+      divineRate,
+      displayCurrency: data.displayCurrency,
+      expenses: JSON.parse(JSON.stringify(data.expenses)),
+      profit: JSON.parse(JSON.stringify(data.profit)),
+      summary: JSON.parse(JSON.stringify(summaryStats))
+    };
+
+    setData((prev) => ({
+      ...prev,
+      history: [newSession, ...(prev.history || [])]
+    }));
+
+    setIsSaveModalOpen(false);
+    addToast(`Сесію «${title}» успішно збережено в історію!`);
+  };
+
+  const handleRestoreSession = (session: SavedSession) => {
     setConfirmModal({
       isOpen: true,
-      title: 'Очищення всіх даних',
-      message: 'Ви впевнені, що хочете безповоротно видалити всі витрати та здобутий прибуток?',
+      title: 'Завантажити сесію в калькулятор',
+      message: `Завантажити дані сесії «${session.title}» у робочу область калькулятора? Поточні незбережені рядки будуть замінені.`,
       onConfirm: () => {
-        setData((prev) => ({ ...prev, expenses: [], profit: [] }));
+        setData((prev) => ({
+          ...prev,
+          expenses: JSON.parse(JSON.stringify(session.expenses)),
+          profit: JSON.parse(JSON.stringify(session.profit)),
+          divinePriceInChaos: session.divineRate || prev.divinePriceInChaos,
+          displayCurrency: session.displayCurrency || prev.displayCurrency
+        }));
         setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-        addToast('Усі дані успішно очищено');
+        setIsHistoryModalOpen(false);
+        addToast(`Сесію «${session.title}» завантажено в калькулятор!`);
       }
     });
   };
 
-  // Actions: Export JSON
+  const handleDeleteSession = (id: string) => {
+    setData((prev) => ({
+      ...prev,
+      history: (prev.history || []).filter((s) => s.id !== id)
+    }));
+    addToast('Сесію видалено з історії');
+  };
+
+  const handleClearAllHistory = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Очистити всю історію',
+      message: 'Ви впевнені, що хочете видалити всі збережені сесії та історію фарму?',
+      onConfirm: () => {
+        setData((prev) => ({ ...prev, history: [] }));
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        addToast('Всю історію сесій очищено');
+      }
+    });
+  };
+
+  // Actions: Clear Active Tables
+  const handleClearAll = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Очищення поточних таблиць',
+      message: 'Ви впевнені, що хочете очистити всі поточні витрати та здобутий прибуток? (Історія збережених сесій залишиться недоторканою).',
+      onConfirm: () => {
+        setData((prev) => ({ ...prev, expenses: [], profit: [] }));
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        addToast('Поточні таблиці очищено');
+      }
+    });
+  };
+
+  // Actions: Export JSON (with history!)
   const handleExportJson = () => {
     try {
       const exportObject = {
-        version: '2.0',
+        version: '3.0',
         engine: 'Vite + React + TypeScript',
         exportedAt: new Date().toISOString(),
         data
@@ -247,7 +318,7 @@ export const App: React.FC = () => {
       downloadAnchor.click();
       downloadAnchor.remove();
 
-      addToast('Дані успішно експортовано у файл JSON');
+      addToast('Дані та історію успішно експортовано у файл JSON');
     } catch (err) {
       console.error(err);
       addToast('Помилка під час експорту JSON', true);
@@ -281,9 +352,10 @@ export const App: React.FC = () => {
               quantity: item.quantity !== undefined ? item.quantity : 0,
               price: item.price !== undefined ? item.price : 0,
               currency: item.currency || (item.name && item.name.toLowerCase().includes('divine') ? 'divine' : 'chaos')
-            }))
+            })),
+            history: Array.isArray(importedData.history) ? importedData.history : []
           });
-          addToast('Резервну копію успішно відновлено!');
+          addToast('Резервну копію та історію успішно відновлено!');
         } else {
           addToast('Невірний формат файлу JSON', true);
         }
@@ -307,6 +379,9 @@ export const App: React.FC = () => {
       {/* Header */}
       <Header
         isSavedActive={isSavedActive}
+        historyCount={data.history?.length || 0}
+        onOpenSaveModal={() => setIsSaveModalOpen(true)}
+        onOpenHistoryModal={() => setIsHistoryModalOpen(true)}
         onExport={handleExportJson}
         onImport={handleImportJson}
         onClearAll={handleClearAll}
@@ -358,6 +433,24 @@ export const App: React.FC = () => {
       <footer>
         Path of Exile is a registered trademark of Grinding Gear Games. Powered by Vite &amp; React.
       </footer>
+
+      {/* Save Session Modal */}
+      <SaveSessionModal
+        isOpen={isSaveModalOpen}
+        onSave={handleSaveSession}
+        onCancel={() => setIsSaveModalOpen(false)}
+      />
+
+      {/* History & Statistics Viewer Modal */}
+      <HistoryModal
+        isOpen={isHistoryModalOpen}
+        history={data.history || []}
+        displayCurrency={data.displayCurrency}
+        onClose={() => setIsHistoryModalOpen(false)}
+        onRestoreSession={handleRestoreSession}
+        onDeleteSession={handleDeleteSession}
+        onClearAllHistory={handleClearAllHistory}
+      />
 
       {/* Confirm Modal */}
       <ConfirmModal

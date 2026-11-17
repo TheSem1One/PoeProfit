@@ -13,7 +13,8 @@ export const DEFAULT_CALCULATOR_DATA: CalculatorState = {
   profit: [
     { id: 'prof_1', name: 'Divine Orb', quantity: 2, price: 1, currency: 'divine' },
     { id: 'prof_2', name: 'Chaos Orb', quantity: 50, price: 1, currency: 'chaos' }
-  ]
+  ],
+  history: []
 };
 
 export const COMMON_POE_ITEMS = [

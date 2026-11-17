@@ -8,13 +8,6 @@ export interface ProfitItem {
   currency: CurrencyType;
 }
 
-export interface CalculatorState {
-  expenses: ProfitItem[];
-  profit: ProfitItem[];
-  divinePriceInChaos: number;
-  displayCurrency: CurrencyType;
-}
-
 export type SessionStatus = 'PROFIT' | 'LOSS' | 'BREAK EVEN';
 
 export interface SummaryStats {
@@ -32,4 +25,23 @@ export interface SummaryStats {
   
   displayCurrency: CurrencyType;
   divineRate: number;
+}
+
+export interface SavedSession {
+  id: string;
+  title: string;
+  createdAt: string;
+  divineRate: number;
+  displayCurrency: CurrencyType;
+  expenses: ProfitItem[];
+  profit: ProfitItem[];
+  summary: SummaryStats;
+}
+
+export interface CalculatorState {
+  expenses: ProfitItem[];
+  profit: ProfitItem[];
+  divinePriceInChaos: number;
+  displayCurrency: CurrencyType;
+  history: SavedSession[];
 }

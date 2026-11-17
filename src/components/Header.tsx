@@ -1,9 +1,12 @@
 import React, { useRef } from 'react';
-import { Download, Upload, Trash2 } from 'lucide-react';
+import { Download, Upload, Trash2, BookmarkPlus, History } from 'lucide-react';
 import { PoECornerBracket, PoEEmblemIcon } from './PoEOrnaments';
 
 interface HeaderProps {
   isSavedActive: boolean;
+  historyCount: number;
+  onOpenSaveModal: () => void;
+  onOpenHistoryModal: () => void;
   onExport: () => void;
   onImport: (file: File) => void;
   onClearAll: () => void;
@@ -11,6 +14,9 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   isSavedActive,
+  historyCount,
+  onOpenSaveModal,
+  onOpenHistoryModal,
   onExport,
   onImport,
   onClearAll
@@ -59,19 +65,44 @@ export const Header: React.FC<HeaderProps> = ({
             <span>Saved</span>
           </div>
 
-          <button className="btn" onClick={onExport} title="Експортувати дані у файл JSON">
+          {/* Save Current Session Button */}
+          <button 
+            type="button" 
+            className="btn btn-gold" 
+            onClick={onOpenSaveModal} 
+            title="Зберегти поточну сесію та прибуток в історію"
+          >
+            <BookmarkPlus size={14} />
+            Зберегти сесію
+          </button>
+
+          {/* View History & Statistics Button */}
+          <button 
+            type="button" 
+            className="btn" 
+            onClick={onOpenHistoryModal} 
+            title="Переглянути збережені сесії та повну статистику"
+          >
+            <History size={14} />
+            Історія ({historyCount})
+          </button>
+
+          {/* Export JSON */}
+          <button type="button" className="btn" onClick={onExport} title="Експортувати дані у файл JSON">
             <Download size={14} />
-            Export JSON
+            Export
           </button>
 
-          <button className="btn" onClick={() => fileInputRef.current?.click()} title="Імпортувати дані з файлу JSON">
+          {/* Import JSON */}
+          <button type="button" className="btn" onClick={() => fileInputRef.current?.click()} title="Імпортувати дані з файлу JSON">
             <Upload size={14} />
-            Import JSON
+            Import
           </button>
 
-          <button className="btn btn-danger" onClick={onClearAll} title="Очистити всі таблиці">
+          {/* Clear All */}
+          <button type="button" className="btn btn-danger" onClick={onClearAll} title="Очистити поточні таблиці">
             <Trash2 size={14} />
-            Clear All
+            Clear
           </button>
         </div>
       </div>
