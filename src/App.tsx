@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { CalculatorState, ProfitItem, SummaryStats } from './types';
+import { CalculatorState, ProfitItem, SummaryStats, CurrencyType } from './types';
 import { STORAGE_KEY, DEFAULT_CALCULATOR_DATA, COMMON_POE_ITEMS } from './constants/poeItems';
 import { Header } from './components/Header';
+import { CurrencyBar } from './components/CurrencyBar';
 import { SummaryDashboard } from './components/SummaryDashboard';
 import { ItemTable } from './components/ItemTable';
 import { ConfirmModal } from './components/ConfirmModal';
@@ -16,7 +17,21 @@ export const App: React.FC = () => {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed.expenses) && Array.isArray(parsed.profit)) {
-          return parsed;
+          // Backward compatibility migration
+          return {
+            divinePriceInChaos: typeof parsed.divinePriceInChaos === 'number' && parsed.divinePriceInChaos > 0 
+              ? parsed.divinePriceInChaos 
+              : 150,
+            displayCurrency: parsed.displayCurrency === 'divine' ? 'divine' : 'chaos',
+            expenses: parsed.expenses.map((item: any) => ({
+              ...item,
+              currency: item.currency || (item.name && item.name.toLowerCase().includes('divine') ? 'divine' : 'chaos')
+            })),
+            profit: parsed.profit.map((item: any) => ({
+              ...item,
+              currency: item.currency || (item.name && item.name.toLowerCase().includes('divine') ? 'divine' : 'chaos')
+            }))
+          };
         }
       }
     } catch (e) {
@@ -85,44 +100,67 @@ export const App: React.FC = () => {
     return isNaN(parsed) || !isFinite(parsed) ? 0 : parsed;
   };
 
-  // Calculate totals and financial metrics
-  const { totalExpenses, totalProfit, summaryStats } = useMemo(() => {
-    let expSum = 0;
+  const divineRate = data.divinePriceInChaos > 0 ? data.divinePriceInChaos : 150;
+
+  // Calculate totals and financial metrics in both Chaos and Divine
+  const { totalExpensesChaos, totalExpensesDivine, totalProfitChaos, totalProfitDivine, summaryStats } = useMemo(() => {
+    let expChaos = 0;
     for (const item of data.expenses) {
-      expSum += parseSafeFloat(item.quantity) * parseSafeFloat(item.price);
+      const qty = parseSafeFloat(item.quantity);
+      const price = parseSafeFloat(item.price);
+      const isDivine = item.currency === 'divine';
+      expChaos += isDivine ? (qty * price * divineRate) : (qty * price);
     }
 
-    let profSum = 0;
+    let profChaos = 0;
     for (const item of data.profit) {
-      profSum += parseSafeFloat(item.quantity) * parseSafeFloat(item.price);
+      const qty = parseSafeFloat(item.quantity);
+      const price = parseSafeFloat(item.price);
+      const isDivine = item.currency === 'divine';
+      profChaos += isDivine ? (qty * price * divineRate) : (qty * price);
     }
 
-    const net = profSum - expSum;
+    const expDivine = divineRate > 0 ? expChaos / divineRate : 0;
+    const profDivine = divineRate > 0 ? profChaos / divineRate : 0;
+
+    const netChaos = profChaos - expChaos;
+    const netDivine = profDivine - expDivine;
 
     let roi = 0;
     let roiDisplay = '0.00%';
-    if (expSum > 0) {
-      roi = (net / expSum) * 100;
+    if (expChaos > 0) {
+      roi = (netChaos / expChaos) * 100;
       roiDisplay = `${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%`;
-    } else if (expSum === 0 && profSum > 0) {
+    } else if (expChaos === 0 && profChaos > 0) {
       roiDisplay = '+100.00%';
     }
 
     let status: SummaryStats['status'] = 'BREAK EVEN';
-    if (net > 0.0001) status = 'PROFIT';
-    else if (net < -0.0001) status = 'LOSS';
+    if (netChaos > 0.0001) status = 'PROFIT';
+    else if (netChaos < -0.0001) status = 'LOSS';
 
     const stats: SummaryStats = {
-      totalExpenses: expSum,
-      totalProfit: profSum,
-      netProfit: net,
+      totalExpensesChaos: expChaos,
+      totalExpensesDivine: expDivine,
+      totalProfitChaos: profChaos,
+      totalProfitDivine: profDivine,
+      netProfitChaos: netChaos,
+      netProfitDivine: netDivine,
       roi,
       roiDisplay,
-      status
+      status,
+      displayCurrency: data.displayCurrency,
+      divineRate
     };
 
-    return { totalExpenses: expSum, totalProfit: profSum, summaryStats: stats };
-  }, [data]);
+    return {
+      totalExpensesChaos: expChaos,
+      totalExpensesDivine: expDivine,
+      totalProfitChaos: profChaos,
+      totalProfitDivine: profDivine,
+      summaryStats: stats
+    };
+  }, [data, divineRate]);
 
   // Actions: Add Item
   const handleAddItem = (type: 'expenses' | 'profit') => {
@@ -130,7 +168,8 @@ export const App: React.FC = () => {
       id: generateId(),
       name: '',
       quantity: 1,
-      price: 0
+      price: 0,
+      currency: 'chaos'
     };
 
     setData((prev) => ({
@@ -151,8 +190,8 @@ export const App: React.FC = () => {
   const handleUpdateItem = (
     type: 'expenses' | 'profit',
     id: string,
-    field: 'name' | 'quantity' | 'price',
-    value: string | number
+    field: 'name' | 'quantity' | 'price' | 'currency',
+    value: any
   ) => {
     setData((prev) => ({
       ...prev,
@@ -165,6 +204,16 @@ export const App: React.FC = () => {
     }));
   };
 
+  // Actions: Divine Rate Change
+  const handleDivineRateChange = (rate: number) => {
+    setData((prev) => ({ ...prev, divinePriceInChaos: rate }));
+  };
+
+  // Actions: Display Currency Switch
+  const handleDisplayCurrencyChange = (currency: CurrencyType) => {
+    setData((prev) => ({ ...prev, displayCurrency: currency }));
+  };
+
   // Actions: Clear All
   const handleClearAll = () => {
     setConfirmModal({
@@ -172,7 +221,7 @@ export const App: React.FC = () => {
       title: 'Очищення всіх даних',
       message: 'Ви впевнені, що хочете безповоротно видалити всі витрати та здобутий прибуток?',
       onConfirm: () => {
-        setData({ expenses: [], profit: [] });
+        setData((prev) => ({ ...prev, expenses: [], profit: [] }));
         setConfirmModal((prev) => ({ ...prev, isOpen: false }));
         addToast('Усі дані успішно очищено');
       }
@@ -183,7 +232,7 @@ export const App: React.FC = () => {
   const handleExportJson = () => {
     try {
       const exportObject = {
-        version: '1.0',
+        version: '2.0',
         engine: 'Vite + React + TypeScript',
         exportedAt: new Date().toISOString(),
         data
@@ -211,30 +260,27 @@ export const App: React.FC = () => {
     reader.onload = (e) => {
       try {
         const parsed = JSON.parse(e.target?.result as string);
-        let importedExpenses = null;
-        let importedProfit = null;
+        let importedData = parsed.data || parsed;
 
-        if (parsed.data && Array.isArray(parsed.data.expenses) && Array.isArray(parsed.data.profit)) {
-          importedExpenses = parsed.data.expenses;
-          importedProfit = parsed.data.profit;
-        } else if (Array.isArray(parsed.expenses) && Array.isArray(parsed.profit)) {
-          importedExpenses = parsed.expenses;
-          importedProfit = parsed.profit;
-        }
-
-        if (importedExpenses && importedProfit) {
+        if (Array.isArray(importedData.expenses) && Array.isArray(importedData.profit)) {
           setData({
-            expenses: importedExpenses.map((item: any) => ({
+            divinePriceInChaos: typeof importedData.divinePriceInChaos === 'number' && importedData.divinePriceInChaos > 0
+              ? importedData.divinePriceInChaos
+              : 150,
+            displayCurrency: importedData.displayCurrency === 'divine' ? 'divine' : 'chaos',
+            expenses: importedData.expenses.map((item: any) => ({
               id: item.id || generateId(),
               name: String(item.name || ''),
               quantity: item.quantity !== undefined ? item.quantity : 0,
-              price: item.price !== undefined ? item.price : 0
+              price: item.price !== undefined ? item.price : 0,
+              currency: item.currency || (item.name && item.name.toLowerCase().includes('divine') ? 'divine' : 'chaos')
             })),
-            profit: importedProfit.map((item: any) => ({
+            profit: importedData.profit.map((item: any) => ({
               id: item.id || generateId(),
               name: String(item.name || ''),
               quantity: item.quantity !== undefined ? item.quantity : 0,
-              price: item.price !== undefined ? item.price : 0
+              price: item.price !== undefined ? item.price : 0,
+              currency: item.currency || (item.name && item.name.toLowerCase().includes('divine') ? 'divine' : 'chaos')
             }))
           });
           addToast('Резервну копію успішно відновлено!');
@@ -266,6 +312,14 @@ export const App: React.FC = () => {
         onClearAll={handleClearAll}
       />
 
+      {/* Currency Exchange Rate Bar & Display Selector */}
+      <CurrencyBar
+        divineRate={divineRate}
+        onDivineRateChange={handleDivineRateChange}
+        displayCurrency={data.displayCurrency}
+        onDisplayCurrencyChange={handleDisplayCurrencyChange}
+      />
+
       {/* Summary Dashboard */}
       <SummaryDashboard stats={summaryStats} />
 
@@ -276,7 +330,10 @@ export const App: React.FC = () => {
           type="expenses"
           title="Expenses (Витрати)"
           items={data.expenses}
-          total={totalExpenses}
+          totalChaos={totalExpensesChaos}
+          totalDivine={totalExpensesDivine}
+          displayCurrency={data.displayCurrency}
+          divineRate={divineRate}
           onAddItem={() => handleAddItem('expenses')}
           onDeleteItem={(id) => handleDeleteItem('expenses', id)}
           onUpdateItem={(id, field, value) => handleUpdateItem('expenses', id, field, value)}
@@ -287,7 +344,10 @@ export const App: React.FC = () => {
           type="profit"
           title="Profit (Прибуток)"
           items={data.profit}
-          total={totalProfit}
+          totalChaos={totalProfitChaos}
+          totalDivine={totalProfitDivine}
+          displayCurrency={data.displayCurrency}
+          divineRate={divineRate}
           onAddItem={() => handleAddItem('profit')}
           onDeleteItem={(id) => handleDeleteItem('profit', id)}
           onUpdateItem={(id, field, value) => handleUpdateItem('profit', id, field, value)}

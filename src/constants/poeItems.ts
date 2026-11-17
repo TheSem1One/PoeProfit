@@ -3,14 +3,16 @@ import { CalculatorState } from '../types';
 export const STORAGE_KEY = 'poe1-profit-calculator-data';
 
 export const DEFAULT_CALCULATOR_DATA: CalculatorState = {
+  divinePriceInChaos: 150,
+  displayCurrency: 'chaos',
   expenses: [
-    { id: 'exp_1', name: 'Scarab of Divinity', quantity: 10, price: 5 },
-    { id: 'exp_2', name: 'Map', quantity: 5, price: 10 },
-    { id: 'exp_3', name: 'Fragment', quantity: 3, price: 15 }
+    { id: 'exp_1', name: 'Scarab of Divinity', quantity: 10, price: 5, currency: 'chaos' },
+    { id: 'exp_2', name: 'Map', quantity: 5, price: 10, currency: 'chaos' },
+    { id: 'exp_3', name: 'Fragment', quantity: 3, price: 15, currency: 'chaos' }
   ],
   profit: [
-    { id: 'prof_1', name: 'Divine Orb', quantity: 2, price: 150 },
-    { id: 'prof_2', name: 'Chaos Orb', quantity: 50, price: 1 }
+    { id: 'prof_1', name: 'Divine Orb', quantity: 2, price: 1, currency: 'divine' },
+    { id: 'prof_2', name: 'Chaos Orb', quantity: 50, price: 1, currency: 'chaos' }
   ]
 };
 

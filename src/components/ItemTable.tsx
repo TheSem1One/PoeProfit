@@ -1,5 +1,5 @@
 import React from 'react';
-import { ProfitItem } from '../types';
+import { ProfitItem, CurrencyType } from '../types';
 import { Plus, X, Inbox } from 'lucide-react';
 import { PoECornerBracket } from './PoEOrnaments';
 
@@ -7,25 +7,31 @@ interface ItemTableProps {
   type: 'expenses' | 'profit';
   title: string;
   items: ProfitItem[];
-  total: number;
+  totalChaos: number;
+  totalDivine: number;
+  displayCurrency: CurrencyType;
+  divineRate: number;
   onAddItem: () => void;
   onDeleteItem: (id: string) => void;
-  onUpdateItem: (id: string, field: 'name' | 'quantity' | 'price', value: string | number) => void;
+  onUpdateItem: (id: string, field: 'name' | 'quantity' | 'price' | 'currency', value: any) => void;
 }
 
 export const ItemTable: React.FC<ItemTableProps> = ({
   type,
   title,
   items,
-  total,
+  totalChaos,
+  totalDivine,
+  displayCurrency,
+  divineRate,
   onAddItem,
   onDeleteItem,
   onUpdateItem
 }) => {
-  const formatNumber = (num: number) => {
+  const formatNumber = (num: number, decimals = 2) => {
     return Number(num).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
     });
   };
 
@@ -64,10 +70,10 @@ export const ItemTable: React.FC<ItemTableProps> = ({
         <table className="poe-table">
           <thead>
             <tr>
-              <th style={{ minWidth: '170px' }}>Item Name</th>
-              <th className="col-num" style={{ width: '100px' }}>Quantity</th>
-              <th className="col-num" style={{ width: '120px' }}>Price / Item</th>
-              <th className="col-num" style={{ width: '120px' }}>Total</th>
+              <th style={{ minWidth: '160px' }}>Item Name</th>
+              <th className="col-num" style={{ width: '85px' }}>Qty</th>
+              <th className="col-num" style={{ width: '150px' }}>Price / Item</th>
+              <th className="col-num" style={{ width: '130px' }}>Total</th>
               <th className="col-act"></th>
             </tr>
           </thead>
@@ -75,20 +81,28 @@ export const ItemTable: React.FC<ItemTableProps> = ({
             {items.map((item) => {
               const qty = parseSafeFloat(item.quantity);
               const price = parseSafeFloat(item.price);
-              const rowTotal = qty * price;
+              const isItemDivine = item.currency === 'divine';
+              const rawTotal = qty * price;
+              
+              // Total in chaos and divine
+              const totalInChaos = isItemDivine ? rawTotal * divineRate : rawTotal;
+              const totalInDivine = isItemDivine ? rawTotal : (divineRate > 0 ? rawTotal / divineRate : 0);
 
               return (
                 <tr key={item.id}>
+                  {/* Name */}
                   <td>
                     <input
                       type="text"
                       className="input-field"
                       list="poe-common-items"
-                      placeholder="e.g. Scarab of Divinity, Map..."
+                      placeholder="e.g. Scarab, Map, Divine..."
                       value={item.name}
                       onChange={(e) => onUpdateItem(item.id, 'name', e.target.value)}
                     />
                   </td>
+
+                  {/* Quantity */}
                   <td>
                     <input
                       type="number"
@@ -103,21 +117,51 @@ export const ItemTable: React.FC<ItemTableProps> = ({
                       }}
                     />
                   </td>
+
+                  {/* Price with Currency Selector */}
                   <td>
-                    <input
-                      type="number"
-                      step="any"
-                      min="0"
-                      className="input-field input-number"
-                      placeholder="0.00"
-                      value={item.price === '' ? '' : item.price}
-                      onChange={(e) => {
-                        const val = e.target.value === '' ? '' : parseFloat(e.target.value);
-                        onUpdateItem(item.id, 'price', val);
-                      }}
-                    />
+                    <div className="price-input-group">
+                      <input
+                        type="number"
+                        step="any"
+                        min="0"
+                        className="input-field input-number"
+                        placeholder="0.00"
+                        value={item.price === '' ? '' : item.price}
+                        onChange={(e) => {
+                          const val = e.target.value === '' ? '' : parseFloat(e.target.value);
+                          onUpdateItem(item.id, 'price', val);
+                        }}
+                      />
+                      <select
+                        className={`currency-select-inline ${isItemDivine ? 'currency-div-selected' : 'currency-chaos-selected'}`}
+                        value={item.currency || 'chaos'}
+                        onChange={(e) => onUpdateItem(item.id, 'currency', e.target.value as CurrencyType)}
+                        title="Виберіть валюту (Chaos / Divine)"
+                      >
+                        <option value="chaos">c</option>
+                        <option value="divine">div</option>
+                      </select>
+                    </div>
                   </td>
-                  <td className="row-total">{formatNumber(rowTotal)}</td>
+
+                  {/* Row Total */}
+                  <td className="row-total">
+                    <div>
+                      {formatNumber(rawTotal, isItemDivine ? 2 : 1)}{' '}
+                      <span className={isItemDivine ? 'currency-div-tag' : 'currency-chaos-tag'}>
+                        {isItemDivine ? 'div' : 'c'}
+                      </span>
+                    </div>
+                    {/* Secondary equivalent if divine/chaos differs */}
+                    <div className="row-total-sub">
+                      {isItemDivine
+                        ? `≈ ${formatNumber(totalInChaos, 0)} c`
+                        : `≈ ${formatNumber(totalInDivine, 2)} div`}
+                    </div>
+                  </td>
+
+                  {/* Actions */}
                   <td style={{ textAlign: 'center' }}>
                     <button
                       type="button"
@@ -147,11 +191,29 @@ export const ItemTable: React.FC<ItemTableProps> = ({
         )}
       </div>
 
+      {/* Table Footer with Selected & Alternate Currencies */}
       <div className="table-footer">
         <span className="total-summary-label">
           {isExpenses ? 'Total Expenses' : 'Total Profit'}
         </span>
-        <span className="total-summary-value">{formatNumber(total)}</span>
+        <div style={{ textAlign: 'right' }}>
+          <div className="total-summary-value">
+            {displayCurrency === 'divine' ? (
+              <>
+                {formatNumber(totalDivine, 2)} <span className="currency-div-tag">div</span>
+              </>
+            ) : (
+              <>
+                {formatNumber(totalChaos, 1)} <span className="currency-chaos-tag">c</span>
+              </>
+            )}
+          </div>
+          <div className="total-summary-secondary">
+            {displayCurrency === 'divine'
+              ? `≈ ${formatNumber(totalChaos, 1)} Chaos`
+              : `≈ ${formatNumber(totalDivine, 2)} Divine`}
+          </div>
+        </div>
       </div>
     </section>
   );

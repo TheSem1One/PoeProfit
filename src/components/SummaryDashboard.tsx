@@ -8,10 +8,12 @@ interface SummaryDashboardProps {
 }
 
 export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ stats }) => {
-  const formatNumber = (num: number) => {
+  const isDivine = stats.displayCurrency === 'divine';
+
+  const formatNumber = (num: number, decimals = 2) => {
     return Number(num).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
     });
   };
 
@@ -27,6 +29,21 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ stats }) => 
     return 'color-neutral';
   };
 
+  // Values based on chosen currency
+  const expVal = isDivine ? stats.totalExpensesDivine : stats.totalExpensesChaos;
+  const expAlt = isDivine ? stats.totalExpensesChaos : stats.totalExpensesDivine;
+
+  const profVal = isDivine ? stats.totalProfitDivine : stats.totalProfitChaos;
+  const profAlt = isDivine ? stats.totalProfitChaos : stats.totalProfitDivine;
+
+  const netVal = isDivine ? stats.netProfitDivine : stats.netProfitChaos;
+  const netAlt = isDivine ? stats.netProfitChaos : stats.netProfitDivine;
+
+  const curTag = isDivine ? 'div' : 'c';
+  const altTag = isDivine ? 'c' : 'div';
+  const primaryDecimals = isDivine ? 2 : 1;
+  const altDecimals = isDivine ? 1 : 2;
+
   return (
     <section className="summary-card poe-panel-with-corners">
       {/* Corner filigree */}
@@ -38,14 +55,13 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ stats }) => 
       <div className="summary-header">
         <div className="summary-title">
           <BarChart3 size={16} stroke="#d4a75e" />
-          Financial Summary
+          Financial Summary ({isDivine ? 'Divine Orbs' : 'Chaos Orbs'})
         </div>
         <div style={{ fontFamily: 'var(--font-poe)', fontSize: '11px', color: 'var(--poe-text-dim)', letterSpacing: '2px', fontVariant: 'small-caps' }}>
-          Auto-Calculated
+          Rate: 1 div = {stats.divineRate} c
         </div>
       </div>
 
-      {/* Classic PoE Tooltip Ornate Separator */}
       <PoESeparator style={{ margin: '10px 0 16px' }} />
 
       <div className="summary-grid">
@@ -55,8 +71,13 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ stats }) => 
             <span>Total Expenses</span>
             <TrendingDown size={14} color="#f04438" />
           </div>
-          <div className="metric-value">{formatNumber(stats.totalExpenses)}</div>
-          <div className="metric-sub">Сума всіх витрат на карти та сетап</div>
+          <div className="metric-value">
+            {formatNumber(expVal, primaryDecimals)}{' '}
+            <span className={isDivine ? 'currency-div-tag' : 'currency-chaos-tag'}>{curTag}</span>
+          </div>
+          <div className="metric-sub">
+            ≈ {formatNumber(expAlt, altDecimals)} {altTag}
+          </div>
         </div>
 
         {/* Total Profit */}
@@ -65,8 +86,13 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ stats }) => 
             <span>Total Profit</span>
             <TrendingUp size={14} color="#38e07a" />
           </div>
-          <div className="metric-value">{formatNumber(stats.totalProfit)}</div>
-          <div className="metric-sub">Загальний валовий видобуток</div>
+          <div className="metric-value">
+            {formatNumber(profVal, primaryDecimals)}{' '}
+            <span className={isDivine ? 'currency-div-tag' : 'currency-chaos-tag'}>{curTag}</span>
+          </div>
+          <div className="metric-sub">
+            ≈ {formatNumber(profAlt, altDecimals)} {altTag}
+          </div>
         </div>
 
         {/* Net Profit */}
@@ -76,9 +102,13 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ stats }) => 
             <span style={{ fontSize: '10.5px', opacity: 0.6 }}>Profit - Exp</span>
           </div>
           <div className={`metric-value ${getColorClass()}`}>
-            {stats.netProfit > 0 ? '+' : ''}{formatNumber(stats.netProfit)}
+            {netVal > 0 ? '+' : ''}
+            {formatNumber(netVal, primaryDecimals)}{' '}
+            <span className={isDivine ? 'currency-div-tag' : 'currency-chaos-tag'}>{curTag}</span>
           </div>
-          <div className="metric-sub">Чистий фінансовий підсумок</div>
+          <div className="metric-sub">
+            ≈ {netAlt > 0 ? '+' : ''}{formatNumber(netAlt, altDecimals)} {altTag}
+          </div>
         </div>
 
         {/* ROI */}
@@ -90,7 +120,7 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ stats }) => 
           <div className={`metric-value ${getColorClass()}`}>
             {stats.roiDisplay}
           </div>
-          <div className="metric-sub">Рентабельність вкладень</div>
+          <div className="metric-sub">Рентабельність сетапу</div>
         </div>
 
         {/* Status */}
@@ -102,7 +132,7 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ stats }) => 
           <div className={`status-badge ${getStatusClass()}`}>
             {stats.status}
           </div>
-          <div className="metric-sub" style={{ textAlign: 'center' }}>Результат фарм-стратегії</div>
+          <div className="metric-sub" style={{ textAlign: 'center' }}>Результат фарм-сесії</div>
         </div>
       </div>
     </section>
