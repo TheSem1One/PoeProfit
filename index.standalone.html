@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PoE 1 Profit Calculator | Wraeclast Economic Ledger</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&family=Cinzel+Decorative:wght@700&family=Marcellus&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --poe-bg-abyss: #060608;
+      --poe-bg-panel: #0d0c10;
+      --poe-bg-surface: #131116;
+      --poe-bg-sunken: #080709;
+      --poe-border-dark: #272018;
+      --poe-border-iron: #3d3224;
+      --poe-border-bronze: #694f2b;
+      --poe-border-gold: #a67c3b;
+      --poe-border-gold-bright: #d9a859;
+      --poe-gold-light: #f6e3bf;
+      --poe-gold-main: #d4a75e;
+      --poe-gold-dark: #8c642a;
+      --poe-text-normal: #c8c8c8;
+      --poe-text-currency: #aa9e82;
+      --poe-text-muted: #82786a;
+      --poe-text-dim: #544c42;
+      --poe-profit-green: #38e07a;
+      --poe-profit-glow: rgba(56, 224, 122, 0.3);
+      --poe-loss-red: #f04438;
+      --poe-loss-glow: rgba(240, 68, 56, 0.35);
+      --font-poe: 'Marcellus', 'Cinzel', 'Trajan Pro', 'Fontin', 'Georgia', serif;
+      --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--poe-bg-abyss);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(166, 124, 59, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at center, rgba(6, 6, 8, 0.6) 0%, rgba(6, 6, 8, 0.85) 100%),
+        linear-gradient(to bottom, rgba(6, 6, 8, 0.5) 0%, rgba(6, 6, 8, 0.8) 100%),
+        url('background.jpg');
+      background-size: auto, auto, auto, cover;
+      background-position: center top, center, center, center top;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: var(--poe-text-normal);
+      font-family: var(--font-ui);
+      font-size: 13.5px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.92);
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #070608; border-left: 1px solid #1f1912; }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #3d301f 0%, #211910 100%);
+      border: 1px solid #57442d;
+    }
+    ::-webkit-scrollbar-thumb:hover { border-color: var(--poe-border-gold); }
+
+    .app-container {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+      width: 100%;
+      flex: 1;
+      position: relative;
+      z-index: 1;
+    }
+
+    .poe-panel-with-corners { position: relative; }
+    .poe-corner-bracket {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .poe-corner-tl { top: -2px; left: -2px; }
+    .poe-corner-tr { top: -2px; right: -2px; transform: scaleX(-1); }
+    .poe-corner-bl { bottom: -2px; left: -2px; transform: scaleY(-1); }
+    .poe-corner-br { bottom: -2px; right: -2px; transform: scale(-1, -1); }
+
+    .poe-separator-container {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 12px 0 16px;
+    }
+    .poe-separator-svg { width: 100%; max-width: 600px; height: 14px; }
+
+    .header-card {
+      background: 
+        linear-gradient(180deg, rgba(30, 24, 18, 0.9) 0%, rgba(13, 11, 14, 0.95) 100%),
+        radial-gradient(ellipse at center top, rgba(166, 124, 59, 0.15) 0%, transparent 70%);
+      border: 2px solid var(--poe-border-iron);
+      border-top: 2px solid var(--poe-border-gold);
+      border-bottom: 2px solid var(--poe-border-gold);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(217, 168, 89, 0.3), inset 0 0 25px rgba(0, 0, 0, 0.8);
+      padding: 18px 24px;
+      border-radius: 2px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-icon-wrapper {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle, #2d2214 0%, #100d0a 100%);
+      border: 1px solid var(--poe-border-gold);
+      box-shadow: 0 0 16px rgba(166, 124, 59, 0.4), inset 0 0 8px #000;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .brand-titles h1 {
+      font-family: var(--font-poe);
+      font-size: 24px;
+      font-weight: 700;
+      font-variant: small-caps;
+      letter-spacing: 2px;
+      color: var(--poe-gold-light);
+      text-shadow: 0 0 14px rgba(246, 227, 191, 0.45), 0 2px 4px #000;
+      line-height: 1.1;
+    }
+
+    .brand-titles p {
+      font-family: var(--font-poe);
+      color: var(--poe-text-currency);
+      font-size: 11.5px;
+      font-variant: small-caps;
+      letter-spacing: 2.5px;
+      margin-top: 3px;
+      text-shadow: 0 1px 2px #000;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .save-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      background: rgba(14, 28, 18, 0.85);
+      border: 1px solid rgba(56, 224, 122, 0.4);
+      border-radius: 2px;
+      font-size: 11px;
+      font-family: var(--font-poe);
+      font-variant: small-caps;
+      letter-spacing: 1.5px;
+      color: var(--poe-profit-green);
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      transform: translateY(-2px);
+      pointer-events: none;
+      box-shadow: 0 0 12px rgba(56, 224, 122, 0.25);
+    }
+
+    .save-indicator.active { opacity: 1; transform: translateY(0); }
+    .save-indicator .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--poe-profit-green);
+      box-shadow: 0 0 10px var(--poe-profit-green);
+    }
+
+    .btn {
+      font-family: var(--font-poe);
+      font-variant: small-caps;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      padding: 8px 18px;
+      color: var(--poe-gold-light);
+      cursor: pointer;
+      border-radius: 2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+      text-shadow: 0 1px 2px #000;
+      border-top: 1px solid #755932;
+      border-left: 1px solid #574021;
+      border-bottom: 2px solid #171109;
+      border-right: 2px solid #241a0d;
+      background: linear-gradient(180deg, #2b2216 0%, #15110a 100%);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 225, 160, 0.15);
+    }
+
+    .btn:hover {
+      border-top-color: var(--poe-border-gold-bright);
+      border-left-color: var(--poe-border-gold);
+      background: linear-gradient(180deg, #3d301e 0%, #1e1810 100%);
+      color: #fff9e6;
+      box-shadow: 0 0 16px rgba(217, 168, 89, 0.4), inset 0 0 8px rgba(217, 168, 89, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      background: #110e09;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.9);
+    }
+
+    .btn-gold {
+      background: linear-gradient(180deg, #61461f 0%, #30220d 100%);
+      border-top-color: #caa058;
+      border-left-color: #9e7939;
+      color: #fff;
+    }
+    .btn-gold:hover {
+      background: linear-gradient(180deg, #7d5926 0%, #442f10 100%);
+      border-top-color: #ffd885;
+      box-shadow: 0 0 20px rgba(255, 190, 66, 0.5), inset 0 0 10px rgba(255, 210, 100, 0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(180deg, #421616 0%, #200808 100%);
+      border-top-color: #8c3b3b;
+      border-left-color: #632626;
+      border-bottom-color: #120303;
+      border-right-color: #1a0606;
+      color: #ffb8b8;
+    }
+    .btn-danger:hover {
+      background: linear-gradient(180deg, #591d1d 0%, #2f0b0b 100%);
+      border-top-color: #e54b4b;
+      color: #ffffff;
+      box-shadow: 0 0 18px rgba(240, 68, 56, 0.4), inset 0 0 10px rgba(240, 68, 56, 0.3);
+    }
+
+    .btn-sm { padding: 5px 12px; font-size: 11px; }
+
+    .summary-card {
+      background: 
+        linear-gradient(180deg, rgba(20, 18, 22, 0.96) 0%, rgba(10, 9, 12, 0.98) 100%),
+        radial-gradient(circle at 50% 0%, rgba(166, 124, 59, 0.1) 0%, transparent 60%);
+      border: 1px solid var(--poe-border-iron);
+      border-top: 2px solid var(--poe-border-gold);
+      border-radius: 2px;
+      padding: 22px 26px;
+      margin-bottom: 26px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85), inset 0 0 35px rgba(0, 0, 0, 0.7);
+    }
+
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .summary-title {
+      font-family: var(--font-poe);
+      font-size: 15px;
+      font-variant: small-caps;
+      letter-spacing: 2.5px;
+      color: var(--poe-gold-light);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-shadow: 0 1px 3px #000;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .metric-box {
+      background: linear-gradient(180deg, #100f13 0%, #070709 100%);
+      border: 1px solid #282118;
+      border-top: 1px solid #4a3b29;
+      border-radius: 2px;
+      padding: 16px 20px;
+      transition: all 0.25s ease;
+      position: relative;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
+    }
+
+    .metric-box:hover {
+      border-color: var(--poe-border-bronze);
+      border-top-color: var(--poe-border-gold);
+      background: linear-gradient(180deg, #15131a 0%, #0a090d 100%);
+      box-shadow: 0 0 15px rgba(166, 124, 59, 0.15), inset 0 0 10px rgba(0, 0, 0, 0.9);
+    }
+
+    .metric-label {
+      font-family: var(--font-poe);
+      font-size: 11px;
+      font-variant: small-caps;
+      letter-spacing: 1.8px;
+      color: var(--poe-text-currency);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .metric-value {
+      font-family: var(--font-poe);
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+      line-height: 1.1;
+      text-shadow: 0 2px 4px #000;
+    }
+
+    .metric-sub {
+      font-size: 11px;
+      color: var(--poe-text-dim);
+      margin-top: 6px;
+      font-family: var(--font-poe);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 14px;
+      font-family: var(--font-poe);
+      font-size: 13px;
+      font-weight: 700;
+      font-variant: small-caps;
+      letter-spacing: 2.5px;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+      height: 36px;
+      width: 100%;
+    }
+
+    .status-badge.profit {
+      background: radial-gradient(circle, rgba(56, 224, 122, 0.2) 0%, rgba(10, 30, 18, 0.8) 100%);
+      border: 1px solid var(--poe-profit-green);
+      color: #5aff9f;
+      text-shadow: 0 0 12px rgba(56, 224, 122, 0.7);
+      box-shadow: 0 0 22px rgba(56, 224, 122, 0.25);
+    }
+
+    .status-badge.loss {
+      background: radial-gradient(circle, rgba(240, 68, 56, 0.2) 0%, rgba(35, 10, 10, 0.85) 100%);
+      border: 1px solid var(--poe-loss-red);
+      color: #ff756b;
+      text-shadow: 0 0 12px rgba(240, 68, 56, 0.7);
+      box-shadow: 0 0 22px rgba(240, 68, 56, 0.25);
+    }
+
+    .status-badge.neutral {
+      background: radial-gradient(circle, rgba(212, 167, 94, 0.15) 0%, rgba(20, 16, 12, 0.85) 100%);
+      border: 1px solid var(--poe-border-gold);
+      color: var(--poe-gold-light);
+      text-shadow: 0 0 8px rgba(212, 167, 94, 0.4);
+    }
+
+    .color-profit { color: var(--poe-profit-green) !important; text-shadow: 0 0 12px var(--poe-profit-glow); }
+    .color-loss { color: var(--poe-loss-red) !important; text-shadow: 0 0 12px var(--poe-loss-glow); }
+    .color-neutral { color: var(--poe-gold-light) !important; }
+
+    .tables-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 26px;
+    }
+    @media (max-width: 1024px) { .tables-layout { grid-template-columns: 1fr; } }
+
+    .table-panel {
+      background: linear-gradient(180deg, #100f13 0%, #070709 100%);
+      border: 1px solid var(--poe-border-iron);
+      border-radius: 2px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.75), inset 0 0 25px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .table-panel.panel-expenses { border-top: 3px solid #943a3a; }
+    .table-panel.panel-profit { border-top: 3px solid #2e7d4d; }
+
+    .panel-header {
+      padding: 14px 20px;
+      background: linear-gradient(180deg, rgba(24, 20, 24, 0.95) 0%, rgba(13, 11, 14, 0.98) 100%);
+      border-bottom: 1px solid var(--poe-border-iron);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .panel-title {
+      font-family: var(--font-poe);
+      font-size: 15px;
+      font-variant: small-caps;
+      letter-spacing: 2px;
+      color: var(--poe-gold-light);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-shadow: 0 1px 3px #000;
+    }
+
+    .panel-title .badge {
+      font-size: 10.5px;
+      padding: 2px 9px;
+      border-radius: 2px;
+      font-family: var(--font-poe);
+      font-variant: small-caps;
+      letter-spacing: 1px;
+      background: #191512;
+      border: 1px solid #4a3a25;
+      color: var(--poe-text-currency);
+    }
+
+    .table-responsive { width: 100%; overflow-x: auto; flex: 1; }
+    table.poe-table { width: 100%; border-collapse: collapse; text-align: left; }
+    table.poe-table th {
+      background: #09080b;
+      color: var(--poe-text-currency);
+      font-family: var(--font-poe);
+      font-size: 11px;
+      font-variant: small-caps;
+      letter-spacing: 1.8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--poe-border-iron);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    table.poe-table th.col-num { text-align: right; }
+    table.poe-table th.col-act { text-align: center; width: 44px; }
+    table.poe-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #1a161b;
+      vertical-align: middle;
+      background: transparent;
+      transition: background 0.15s ease;
+    }
+    table.poe-table tbody tr:nth-child(even) td { background: rgba(0, 0, 0, 0.25); }
+    table.poe-table tbody tr:hover td { background: rgba(166, 124, 59, 0.08); }
+
+    .input-field {
+      width: 100%;
+      background: var(--poe-bg-sunken);
+      border: 1px solid #33291d;
+      color: #fff4e0;
+      padding: 8px 11px;
+      font-size: 13.5px;
+      font-family: var(--font-poe);
+      letter-spacing: 0.5px;
+      border-radius: 2px;
+      transition: all 0.2s ease;
+      outline: none;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.7);
+    }
+    .input-field:focus {
+      border-color: var(--poe-border-gold-bright);
+      background: #0d0b0a;
+      box-shadow: 0 0 10px rgba(217, 168, 89, 0.4), inset 0 1px 3px rgba(0, 0, 0, 0.9);
+    }
+    .input-field::placeholder { color: var(--poe-text-dim); font-style: italic; font-size: 12px; }
+    .input-number {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+    .input-number::-webkit-outer-spin-button,
+    .input-number::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+    .row-total {
+      font-family: var(--font-poe);
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--poe-gold-light);
+      text-align: right;
+      padding-right: 8px;
+      white-space: nowrap;
+      letter-spacing: 0.5px;
+      text-shadow: 0 1px 2px #000;
+    }
+
+    .btn-delete {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #734848;
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .btn-delete:hover {
+      background: rgba(240, 68, 56, 0.18);
+      border-color: rgba(240, 68, 56, 0.4);
+      color: #ff756b;
+      transform: scale(1.1);
+    }
+
+    .empty-state {
+      padding: 44px 20px;
+      text-align: center;
+      color: var(--poe-text-muted);
+      font-family: var(--font-poe);
+      font-size: 13px;
+      font-variant: small-caps;
+      letter-spacing: 1.5px;
+      background: rgba(6, 5, 8, 0.6);
+    }
+
+    .table-footer {
+      padding: 14px 22px;
+      background: #09080c;
+      border-top: 1px solid var(--poe-border-iron);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .total-summary-label {
+      font-family: var(--font-poe);
+      font-size: 12px;
+      font-variant: small-caps;
+      letter-spacing: 2px;
+      color: var(--poe-text-currency);
+    }
+    .total-summary-value {
+      font-family: var(--font-poe);
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 4px #000;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 20px;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal-box {
+      background: linear-gradient(180deg, #18151c 0%, #0c0a0e 100%);
+      border: 2px solid var(--poe-border-iron);
+      border-top: 2px solid var(--poe-border-gold);
+      border-radius: 2px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), 0 0 30px rgba(166, 124, 59, 0.25);
+      position: relative;
+    }
+    .modal-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--poe-border-iron);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title {
+      font-family: var(--font-poe);
+      font-size: 15px;
+      font-variant: small-caps;
+      letter-spacing: 2px;
+      color: var(--poe-gold-light);
+    }
+    .modal-body {
+      padding: 22px;
+      color: var(--poe-text-normal);
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+    .modal-footer {
+      padding: 14px 22px;
+      background: #080709;
+      border-top: 1px solid var(--poe-border-iron);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    #importFileInput { display: none; }
+    footer {
+      margin-top: 45px;
+      padding: 24px 0;
+      border-top: 1px solid #1f1912;
+      text-align: center;
+      color: var(--poe-text-dim);
+      font-size: 11.5px;
+      font-family: var(--font-poe);
+      font-variant: small-caps;
+      letter-spacing: 1.5px;
+    }
+  </style>
+</head>
+<body>
+  <input type="file" id="importFileInput" accept=".json,application/json">
+
+  <datalist id="poe-common-items">
+    <option value="Divine Orb"></option>
+    <option value="Chaos Orb"></option>
+    <option value="Exalted Orb"></option>
+    <option value="Mirror of Kalandra"></option>
+    <option value="Awakened Sextant"></option>
+    <option value="Scarab of Divinity"></option>
+    <option value="Divination Scarab"></option>
+    <option value="Ambush Scarab"></option>
+    <option value="Harbinger Scarab"></option>
+    <option value="Cartography Scarab"></option>
+    <option value="T16 Map"></option>
+    <option value="T17 Map (Citadel/Ziggurat)"></option>
+    <option value="Shaper Fragment"></option>
+    <option value="Elder Fragment"></option>
+    <option value="Sirus Fragment"></option>
+    <option value="Maven's Writ"></option>
+    <option value="Simulacrum"></option>
+    <option value="Chayula Breachstone"></option>
+    <option value="Logbook"></option>
+    <option value="Allflame Ember"></option>
+    <option value="Valdo's Puzzle Box"></option>
+    <option value="The Apothecary"></option>
+    <option value="The Doctor"></option>
+    <option value="House of Mirrors"></option>
+  </datalist>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header-card poe-panel-with-corners">
+      <div class="header-content">
+        <div class="brand-group">
+          <div class="brand-icon-wrapper" title="Path of Exile 1 Ledger">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="14" stroke="#7e5c26" stroke-width="1.2" stroke-dasharray="3 2" />
+              <circle cx="16" cy="16" r="11" fill="#2d2214" stroke="#cda059" stroke-width="1.5" />
+              <polygon points="16,6 18.5,13.5 26,16 18.5,18.5 16,26 13.5,18.5 6,16 13.5,13.5" fill="#ffd885" stroke="#533c16" stroke-width="0.8" />
+              <circle cx="16" cy="16" r="2.5" fill="#fff4cf" />
+            </svg>
+          </div>
+          <div class="brand-titles">
+            <h1>PoE 1 Profit Calculator</h1>
+            <p>Wraeclast Economic Ledger &amp; Farming Analytics</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="save-indicator" id="saveIndicator">
+            <span class="dot"></span>
+            <span>Saved</span>
+          </div>
+
+          <button class="btn" id="btnExport" title="Експортувати дані у файл JSON">
+            Export JSON
+          </button>
+
+          <button class="btn" id="btnImport" title="Імпортувати дані з файлу JSON">
+            Import JSON
+          </button>
+
+          <button class="btn btn-danger" id="btnClearAll" title="Очистити всі таблиці">
+            Clear All
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Summary -->
+    <section class="summary-card poe-panel-with-corners">
+      <div class="summary-header">
+        <div class="summary-title">
+          Financial Summary
+        </div>
+        <div style="font-family: var(--font-poe); font-size: 11px; color: var(--poe-text-dim); letter-spacing: 2px; font-variant: small-caps;">
+          Auto-Calculated
+        </div>
+      </div>
+
+      <div class="summary-grid">
+        <div class="metric-box">
+          <div class="metric-label">
+            <span>Total Expenses</span>
+          </div>
+          <div class="metric-value" id="summaryExpenses">0.00</div>
+          <div class="metric-sub">Сума всіх витрат на сесію</div>
+        </div>
+
+        <div class="metric-box">
+          <div class="metric-label">
+            <span>Total Profit</span>
+          </div>
+          <div class="metric-value" id="summaryProfit">0.00</div>
+          <div class="metric-sub">Загальний валовий видобуток</div>
+        </div>
+
+        <div class="metric-box">
+          <div class="metric-label">
+            <span>Net Profit</span>
+            <span style="font-size: 10.5px; opacity: 0.6;">Profit - Exp</span>
+          </div>
+          <div class="metric-value" id="summaryNetProfit">0.00</div>
+          <div class="metric-sub">Чистий фінансовий підсумок</div>
+        </div>
+
+        <div class="metric-box">
+          <div class="metric-label">
+            <span>ROI (%)</span>
+            <span style="font-size: 10.5px; opacity: 0.6;">(Net / Exp) * 100</span>
+          </div>
+          <div class="metric-value" id="summaryROI">0.00%</div>
+          <div class="metric-sub">Рентабельність вкладень</div>
+        </div>
+
+        <div class="metric-box" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div class="metric-label">
+            <span>Session Status</span>
+          </div>
+          <div class="status-badge neutral" id="summaryStatus">BREAK EVEN</div>
+          <div class="metric-sub" style="text-align: center;">Результат фарм-стратегії</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tables -->
+    <div class="tables-layout">
+      <!-- Expenses -->
+      <section class="table-panel panel-expenses poe-panel-with-corners">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span style="color: #e54b4b;">⚔</span>
+            Expenses (Витрати)
+            <span class="badge" id="expensesCount">0 items</span>
+          </div>
+          <button class="btn btn-gold btn-sm" id="btnAddExpense">
+            + Add Item
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="poe-table" id="expensesTable">
+            <thead>
+              <tr>
+                <th style="min-width: 170px;">Item Name</th>
+                <th class="col-num" style="width: 100px;">Quantity</th>
+                <th class="col-num" style="width: 120px;">Price / Item</th>
+                <th class="col-num" style="width: 120px;">Total</th>
+                <th class="col-act"></th>
+              </tr>
+            </thead>
+            <tbody id="expensesTableBody"></tbody>
+          </table>
+          <div id="expensesEmpty" class="empty-state" style="display: none;">
+            <div>Немає доданих витрат</div>
+          </div>
+        </div>
+
+        <div class="table-footer">
+          <span class="total-summary-label">Total Expenses</span>
+          <span class="total-summary-value" id="footerExpensesTotal">0.00</span>
+        </div>
+      </section>
+
+      <!-- Profit -->
+      <section class="table-panel panel-profit poe-panel-with-corners">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span style="color: #38e07a;">💰</span>
+            Profit (Прибуток)
+            <span class="badge" id="profitCount">0 items</span>
+          </div>
+          <button class="btn btn-gold btn-sm" id="btnAddProfit">
+            + Add Item
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="poe-table" id="profitTable">
+            <thead>
+              <tr>
+                <th style="min-width: 170px;">Item Name</th>
+                <th class="col-num" style="width: 100px;">Quantity</th>
+                <th class="col-num" style="width: 120px;">Price / Item</th>
+                <th class="col-num" style="width: 120px;">Total</th>
+                <th class="col-act"></th>
+              </tr>
+            </thead>
+            <tbody id="profitTableBody"></tbody>
+          </table>
+          <div id="profitEmpty" class="empty-state" style="display: none;">
+            <div>Немає доданого видобутку</div>
+          </div>
+        </div>
+
+        <div class="table-footer">
+          <span class="total-summary-label">Total Profit</span>
+          <span class="total-summary-value" id="footerProfitTotal">0.00</span>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      Path of Exile is a registered trademark of Grinding Gear Games. Created for Exile Economy Mastery.
+    </footer>
+  </div>
+
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Підтвердження</div>
+      </div>
+      <div class="modal-body" id="modalMessage">
+        Ви впевнені, що хочете виконати цю дію?
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="modalBtnCancel">Скасувати</button>
+        <button class="btn btn-danger" id="modalBtnConfirm">Підтвердити</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+      const STORAGE_KEY = 'poe1-profit-calculator-data';
+      const DEFAULT_DATA = {
+        expenses: [
+          { id: 'exp_1', name: 'Scarab of Divinity', quantity: 10, price: 5 },
+          { id: 'exp_2', name: 'Map', quantity: 5, price: 10 },
+          { id: 'exp_3', name: 'Fragment', quantity: 3, price: 15 }
+        ],
+        profit: [
+          { id: 'prof_1', name: 'Divine Orb', quantity: 2, price: 150 },
+          { id: 'prof_2', name: 'Chaos Orb', quantity: 50, price: 1 }
+        ]
+      };
+
+      let appData = { expenses: [], profit: [] };
+
+      const expensesTbody = document.getElementById('expensesTableBody');
+      const profitTbody = document.getElementById('profitTableBody');
+      const expensesEmpty = document.getElementById('expensesEmpty');
+      const profitEmpty = document.getElementById('profitEmpty');
+      const expensesCount = document.getElementById('expensesCount');
+      const profitCount = document.getElementById('profitCount');
+      const footerExpensesTotal = document.getElementById('footerExpensesTotal');
+      const footerProfitTotal = document.getElementById('footerProfitTotal');
+      const summaryExpenses = document.getElementById('summaryExpenses');
+      const summaryProfit = document.getElementById('summaryProfit');
+      const summaryNetProfit = document.getElementById('summaryNetProfit');
+      const summaryROI = document.getElementById('summaryROI');
+      const summaryStatus = document.getElementById('summaryStatus');
+      const saveIndicator = document.getElementById('saveIndicator');
+      const btnAddExpense = document.getElementById('btnAddExpense');
+      const btnAddProfit = document.getElementById('btnAddProfit');
+      const btnClearAll = document.getElementById('btnClearAll');
+      const btnExport = document.getElementById('btnExport');
+      const btnImport = document.getElementById('btnImport');
+      const importFileInput = document.getElementById('importFileInput');
+      const confirmModal = document.getElementById('confirmModal');
+      const modalBtnCancel = document.getElementById('modalBtnCancel');
+      const modalBtnConfirm = document.getElementById('modalBtnConfirm');
+      let modalConfirmCallback = null;
+
+      function generateId() { return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6); }
+      function formatNumber(num) {
+        if (num === null || num === undefined || isNaN(num) || !isFinite(num)) return '0.00';
+        return Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      function parseSafeFloat(val) {
+        if (val === '' || val === null || val === undefined) return 0;
+        const parsed = parseFloat(val);
+        return isNaN(parsed) || !isFinite(parsed) ? 0 : parsed;
+      }
+
+      let saveTimeout = null;
+      function triggerSaveIndicator() {
+        saveIndicator.classList.add('active');
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => saveIndicator.classList.remove('active'), 1200);
+      }
+
+      function saveData() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+          triggerSaveIndicator();
+        } catch (e) { console.error(e); }
+      }
+
+      function loadData() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed.expenses) && Array.isArray(parsed.profit)) {
+              appData = parsed;
+              return;
+            }
+          }
+        } catch (e) { console.error(e); }
+        appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        saveData();
+      }
+
+      function calculateTotals() {
+        let totalExpenses = 0;
+        let totalProfit = 0;
+
+        for (const item of appData.expenses) {
+          totalExpenses += (parseSafeFloat(item.quantity) * parseSafeFloat(item.price));
+        }
+        for (const item of appData.profit) {
+          totalProfit += (parseSafeFloat(item.quantity) * parseSafeFloat(item.price));
+        }
+
+        const netProfit = totalProfit - totalExpenses;
+        let roiDisplay = '0.00%';
+        if (totalExpenses > 0) {
+          const roi = (netProfit / totalExpenses) * 100;
+          roiDisplay = `${roi >= 0 ? '+' : ''}${formatNumber(roi)}%`;
+        } else if (totalExpenses === 0 && totalProfit > 0) {
+          roiDisplay = '+100.00%';
+        }
+
+        footerExpensesTotal.textContent = formatNumber(totalExpenses);
+        footerProfitTotal.textContent = formatNumber(totalProfit);
+        summaryExpenses.textContent = formatNumber(totalExpenses);
+        summaryProfit.textContent = formatNumber(totalProfit);
+        summaryNetProfit.textContent = (netProfit > 0 ? '+' : '') + formatNumber(netProfit);
+        summaryROI.textContent = roiDisplay;
+
+        summaryNetProfit.classList.remove('color-profit', 'color-loss', 'color-neutral');
+        summaryROI.classList.remove('color-profit', 'color-loss', 'color-neutral');
+        summaryStatus.classList.remove('profit', 'loss', 'neutral');
+
+        if (netProfit > 0.0001) {
+          summaryNetProfit.classList.add('color-profit');
+          summaryROI.classList.add('color-profit');
+          summaryStatus.classList.add('profit');
+          summaryStatus.textContent = 'PROFIT';
+        } else if (netProfit < -0.0001) {
+          summaryNetProfit.classList.add('color-loss');
+          summaryROI.classList.add('color-loss');
+          summaryStatus.classList.add('loss');
+          summaryStatus.textContent = 'LOSS';
+        } else {
+          summaryNetProfit.classList.add('color-neutral');
+          summaryROI.classList.add('color-neutral');
+          summaryStatus.classList.add('neutral');
+          summaryStatus.textContent = 'BREAK EVEN';
+        }
+
+        expensesCount.textContent = `${appData.expenses.length} ${appData.expenses.length === 1 ? 'item' : 'items'}`;
+        profitCount.textContent = `${appData.profit.length} ${appData.profit.length === 1 ? 'item' : 'items'}`;
+        expensesEmpty.style.display = appData.expenses.length === 0 ? 'block' : 'none';
+        profitEmpty.style.display = appData.profit.length === 0 ? 'block' : 'none';
+      }
+
+      function createRowElement(type, item) {
+        const tr = document.createElement('tr');
+        tr.dataset.id = item.id;
+        tr.dataset.type = type;
+        const rowTotal = parseSafeFloat(item.quantity) * parseSafeFloat(item.price);
+
+        tr.innerHTML = `
+          <td><input type="text" class="input-field item-name-input" list="poe-common-items" placeholder="Item name" value="${item.name || ''}"></td>
+          <td><input type="number" step="any" min="0" class="input-field input-number item-qty-input" placeholder="0" value="${item.quantity !== undefined ? item.quantity : ''}"></td>
+          <td><input type="number" step="any" min="0" class="input-field input-number item-price-input" placeholder="0.00" value="${item.price !== undefined ? item.price : ''}"></td>
+          <td class="row-total">${formatNumber(rowTotal)}</td>
+          <td style="text-align: center;"><button type="button" class="btn-delete" title="Видалити">&times;</button></td>
+        `;
+
+        const nameInput = tr.querySelector('.item-name-input');
+        const qtyInput = tr.querySelector('.item-qty-input');
+        const priceInput = tr.querySelector('.item-price-input');
+        const rowTotalCell = tr.querySelector('.row-total');
+        const btnDelete = tr.querySelector('.btn-delete');
+
+        function update() {
+          item.name = nameInput.value;
+          item.quantity = qtyInput.value === '' ? '' : parseSafeFloat(qtyInput.value);
+          item.price = priceInput.value === '' ? '' : parseSafeFloat(priceInput.value);
+          rowTotalCell.textContent = formatNumber(parseSafeFloat(item.quantity) * parseSafeFloat(item.price));
+          calculateTotals();
+          saveData();
+        }
+
+        nameInput.addEventListener('input', update);
+        qtyInput.addEventListener('input', update);
+        priceInput.addEventListener('input', update);
+        btnDelete.addEventListener('click', () => deleteItem(type, item.id));
+
+        return tr;
+      }
+
+      function renderAll() {
+        expensesTbody.innerHTML = '';
+        appData.expenses.forEach(item => expensesTbody.appendChild(createRowElement('expenses', item)));
+        profitTbody.innerHTML = '';
+        appData.profit.forEach(item => profitTbody.appendChild(createRowElement('profit', item)));
+        calculateTotals();
+      }
+
+      function addItem(type) {
+        const item = { id: generateId(), name: '', quantity: 1, price: 0 };
+        if (type === 'expenses') {
+          appData.expenses.push(item);
+          expensesTbody.appendChild(createRowElement('expenses', item));
+        } else {
+          appData.profit.push(item);
+          profitTbody.appendChild(createRowElement('profit', item));
+        }
+        calculateTotals();
+        saveData();
+      }
+
+      function deleteItem(type, id) {
+        if (type === 'expenses') appData.expenses = appData.expenses.filter(i => i.id !== id);
+        else appData.profit = appData.profit.filter(i => i.id !== id);
+        const row = document.querySelector(`tr[data-id="${id}"]`);
+        if (row) row.remove();
+        calculateTotals();
+        saveData();
+      }
+
+      function clearAll() {
+        confirmModal.classList.add('open');
+      }
+
+      modalBtnCancel.addEventListener('click', () => confirmModal.classList.remove('open'));
+      modalBtnConfirm.addEventListener('click', () => {
+        appData = { expenses: [], profit: [] };
+        renderAll();
+        saveData();
+        confirmModal.classList.remove('open');
+      });
+
+      btnAddExpense.addEventListener('click', () => addItem('expenses'));
+      btnAddProfit.addEventListener('click', () => addItem('profit'));
+      btnClearAll.addEventListener('click', clearAll);
+
+      loadData();
+      renderAll();
+    })();
+  </script>
+</body>
+</html>
